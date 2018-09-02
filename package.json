@@ -1,5 +1,5 @@
 {
-  "name": "@jupyterlab/kyso",
+  "name": "@kyso/jupyterlab",
   "version": "1.0.0",
   "description": "Push to Kyso from JupyterLab",
   "keywords": [
@@ -9,6 +9,7 @@
     "jupyterlab-extension"
   ],
   "license": "MIT",
+  "private": false,
   "author": "Eoin Murray",
   "main": "lib/index.js",
   "repository": "https://github.com/kyso-io/jupyterlab-kyso.git",
