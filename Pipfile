@@ -1,12 +1,14 @@
 [[source]]
 verify_ssl = true
-name = "pypi"
 url = "https://pypi.org/simple"
+name = "pypi"
 
-[dev-packages]
+[packages]
+jupyterlab = "==0.34.7"
+jupyter = "*"
+jupyter-core = "*"
 
 [requires]
 python_version = "3.5"
 
-[packages]
-jupyterlab = "*"
+[dev-packages]

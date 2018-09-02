@@ -1,6 +1,7 @@
 import React from 'react'
 import JSZip from 'jszip'
 import crypto from 'crypto-js'
+import { Line } from 'rc-progress'
 import Spinner from 'react-spinkit'
 import { publish, Buffer } from '@kyso/publish'
 import { VDomRenderer } from '@jupyterlab/apputils'
@@ -48,7 +49,8 @@ class Component extends React.Component {
       content: null,
       error: null,
       busy: false,
-      published: false
+      published: false,
+      progress: null
     }
   }
 
@@ -101,8 +103,9 @@ class Component extends React.Component {
   }
 
   async startPublish(main) {
+    this.setState({ busy: true, progress: null })
     const { items } = this.state
-    const { user } = this.props
+    const { user, refreshMenuState } = this.props
     const filebrowser = this.filebrowser
 
     const promises = items.map(async (item) => {
@@ -126,7 +129,7 @@ class Component extends React.Component {
       name = kysofile.split('/')[1].trim()
       const author = kysofile.split('/')[0].trim()
       if (author !==  user.nickname) {
-        name = prompt(`Name this study?\n(forked from ${author}/${name})`)
+        name = prompt(`Name this study?\n(this was forked from ${author}/${name})`)
       }
     }
 
@@ -137,7 +140,10 @@ class Component extends React.Component {
       }
     }
 
-    if (!name) return // the user cancelled the prompts
+    if (!name) {
+        this.setState({ busy: false })
+        return // the user cancelled the prompts
+      }
 
     this.setState({ busy: true, name })
     try {
@@ -146,10 +152,13 @@ class Component extends React.Component {
         main,
         user,
         files,
-        apiUrl: config.API_URL
+        apiUrl: config.API_URL,
+        onProgress: (ev) => {
+          this.setState({ progress: Math.round(ev.loaded*100/ev.total) })
+        }
       })
     } catch (err) {
-      this.setState({ busy: false, published: false })
+      this.setState({ progress: null, busy: false, published: false })
       if(err.response) {
         if (err.response.data.error) {
           return this.setState({ error: err.response.data.error })
@@ -162,30 +171,36 @@ class Component extends React.Component {
       await filebrowser.upload(
         new File([`${user.nickname}/${name}`], '.kyso', { type: 'text/plain', })
       )
+      refreshMenuState()
     }
-    return this.setState({ busy: false, published: true })
+    return this.setState({ progress: null, busy: false, published: true })
   }
 
   render() {
     const { user } = this.props
-    const { items, name, error, busy, published } = this.state
+    const { items, name, error, progress, busy, published } = this.state
 
     return (
       <div className="jp-Launcher-body">
         <div className="jp-Launcher-content">
-          <p>
-            <a
-              className="preview-link"
-              href="#"
-              style={{ marginLeft: '0px' }}
-              onClick={(e) => {
-                e.preventDefault()
-                this.back()
-              }}
-            >
-              {'<'} back
-            </a>
-          </p>
+
+          {!error && !published && !busy &&
+            <p>
+              <a
+                className="preview-link"
+                href="#"
+                style={{ marginLeft: '0px' }}
+                onClick={(e) => {
+                  e.preventDefault()
+                  this.back()
+                }}
+              >
+                {'<'} back
+              </a>
+            </p>
+          }
+
+          <h2>Publish {name && 'an update'} to Kyso</h2>
 
           {error && (
             <p>
@@ -193,11 +208,15 @@ class Component extends React.Component {
             </p>
           )}
 
-          <h2>Publish {name && 'an update'} to Kyso</h2>
-
-          {busy &&
+          {busy && !progress &&
             <div>
-              <Spinner name="circle" fadeIn="none" /> Publishing...
+              <Spinner name="circle" fadeIn="none" />
+            </div>
+          }
+
+          {progress &&
+            <div>
+              <Line percent={progress.toString()} /> {`${progress}%`}
             </div>
           }
 
@@ -213,25 +232,11 @@ class Component extends React.Component {
             </p>
           }
 
-          {name && !published &&
-            <p>
-              This study is published on Kyso (
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={`https://kyso.io/${user.nickname}/${name}`}
-                >
-                  {`${user.nickname}/${name}`}
-                </a>
-              )
-            </p>
-          }
-
-          {!published && !busy && <p>
+          {!error && !published && !busy && <p>
             Choose which notebook will be the main notebook displayed on Kyso (don{"'"}t worry all files will
             be included in a reproducible repository on Kyso).
           </p>}
-          {!published && !busy && items.map(item => (
+          {!error && !published && !busy && items.map(item => (
             <p key={item.name}>
               {item.type !== "notebook" && item.type !== "directory" && (
                 <span>{item.name}</span>
