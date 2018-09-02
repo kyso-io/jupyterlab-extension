@@ -38,26 +38,8 @@ pipenv shell
 jupyter lab --watch
 ```
 
-## Auth
+## Saving studies
 
-Auth is done by saving a string of json in a localStorage variable called 'user'. Retrieve it with:
-
-```javascript
-JSON.parse(localStorage.getItem('user'))
-```
-
-set it with:
-
-```javascript
-localStorage.setItem('user', JSON.stringify(user))
-```
-
-```bash
-sudo jupyter lab --watch --ip=* --allow-root
-> node /Users/eoinmurray/.local/share/virtualenvs/jupyterlab-kyso-dg6Lf56k/lib/python3.5/site-packages/jupyterlab/staging/yarn.js install
-> ✨  Done in 103.64s.
-> node /Users/eoinmurray/.local/share/virtualenvs/jupyterlab-kyso-dg6Lf56k/lib/python3.5/site-packages/jupyterlab/staging/yarn.js run watch
-> node /Users/eoinmurray/.local/share/virtualenvs/jupyterlab-kyso-dg6Lf56k/lib/python3.5/site-packages/jupyterlab/staging/yarn.js install
-> ✨  Done in 107.44s.
-> node /Users/eoinmurray/.local/share/virtualenvs/jupyterlab-kyso-dg6Lf56k/lib/python3.5/site-packages/jupyterlab/staging/yarn.js run watch
-```
+This plugin uses the [@kyso/publish](https://github.com/kyso-io/kyso-publish)
+to publish the directory to Kyso. But this repo will be responsible for saving the
+author and studyname in a hidden file called .kyso in the form author/studyname

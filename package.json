@@ -17,10 +17,12 @@
     "watch": "babel src -w -d lib"
   },
   "dependencies": {
+    "@jupyterlab/application": "^0.18.4",
     "@jupyterlab/apputils": "^0.18.4",
     "@jupyterlab/docmanager": "^0.18.4",
     "@jupyterlab/filebrowser": "^0.18.4",
     "@jupyterlab/mainmenu": "^0.7.4",
+    "@kyso/publish": "^1.0.3",
     "@kyso/react-jupyter": "^0.4.0",
     "@phosphor/algorithm": "^1.1.2",
     "auth0-lock": "^11.8.1",
@@ -33,8 +35,9 @@
     "js-cookies": "^1.0.4",
     "jszip": "^3.1.5",
     "nwb": "^0.21.5",
-    "react": "^16.3.2",
-    "react-dom": "^16.3.2",
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2",
+    "react-spinkit": "^3.0.0",
     "watch": "^1.0.2"
   },
   "devDependencies": {

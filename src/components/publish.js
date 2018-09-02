@@ -1,8 +1,11 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
-import Jupyter from '@kyso/react-jupyter'
+import JSZip from 'jszip'
+import crypto from 'crypto-js'
+import Spinner from 'react-spinkit'
+import { publish, Buffer } from '@kyso/publish'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
+import config from '../config.js'
 
 export const LAUNCHER_CLASS = 'kyso-publish'
 
@@ -21,9 +24,8 @@ export default class extends VDomRenderer {
   }
 
   render() {
-    ReactDOM.render(
-      <Component {...this.props} />,
-      this.node
+    return (
+      <Component {...this.props} />
     )
   }
 }
@@ -44,11 +46,28 @@ class Component extends React.Component {
     this.state = {
       items: [],
       content: null,
-      error: null
+      error: null,
+      busy: false,
+      published: false
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    let kysofile = null
+    try {
+      const _kysofile = await this.filebrowser.manager.services.contents.get('.kyso')
+      kysofile = _kysofile.content
+    } catch (err) {
+      // no kysofile
+    }
+
+    if (kysofile) {
+      const author = kysofile.split('/')[0].trim()
+      if (author ===  this.props.user.nickname) {
+        this.setState({ name: kysofile.split('/')[1].trim() })
+      }
+    }
+
     this.filebrowser.refreshed.connect((fb) => {
       this.setState({
         items: sort(fb._items)
@@ -77,37 +96,79 @@ class Component extends React.Component {
   async cd(item) {
     this.filebrowser.cd(item.name)
     this.setState({
-      content: null,
       error: null
     })
   }
 
-  async startPublish(mainFile) {
-    // we should loop over the files to see if there is a study.json
-    // if not then create repo and write the study.json with the result
-    // also need to ask for name for new study
+  async startPublish(main) {
+    const { items } = this.state
+    const { user } = this.props
+    const filebrowser = this.filebrowser
 
-    const isNew = true // this needs to be a check for study.json
+    const promises = items.map(async (item) => {
+      const file = await filebrowser.manager.services.contents.get(item.path)
+      const data = file.format === 'json' ? JSON.stringify(file.content) : file.content
+      return { path: file.path, data: Buffer.from(data) }
+    })
+    const files = await Promise.all(promises)
 
-    // const files = await prepareFiles({
-    //   files: this.state.items,
-    //   filebrowser: this.filebrowser
-    // })
+    let name = null
+    let kysofile = null
 
-    const name = prompt('Name this study?')
-
-    const studyJSON = {
-      name,
-      author: this.props.user.nickname,
-      main: mainFile
+    try {
+      const _kysofile = await filebrowser.manager.services.contents.get('.kyso')
+      kysofile = _kysofile.content
+    } catch (err) {
+      // no kysofile
     }
 
+    if (kysofile) {
+      name = kysofile.split('/')[1].trim()
+      const author = kysofile.split('/')[0].trim()
+      if (author !==  user.nickname) {
+        name = prompt(`Name this study?\n(forked from ${author}/${name})`)
+      }
+    }
+
+    if (!kysofile) {
+      name = prompt('Name this study?')
+      if (name) {
+        const file = new File([`${user.nickname}/${name}`], '.kyso', { type: 'text/plain', })
+      }
+    }
+
+    if (!name) return // the user cancelled the prompts
+
+    this.setState({ busy: true, name })
+    try {
+      await publish({
+        name,
+        main,
+        user,
+        files,
+        apiUrl: config.API_URL
+      })
+    } catch (err) {
+      this.setState({ busy: false, published: false })
+      if(err.response) {
+        if (err.response.data.error) {
+          return this.setState({ error: err.response.data.error })
+        }
+      }
+      return this.setState({ error: 'An unknown error occurred.' })
+    }
+
+    if (name) {
+      await filebrowser.upload(
+        new File([`${user.nickname}/${name}`], '.kyso', { type: 'text/plain', })
+      )
+    }
+    return this.setState({ busy: false, published: true })
   }
 
   render() {
-    const {
-      items, content, error
-    } = this.state
+    const { user } = this.props
+    const { items, name, error, busy, published } = this.state
 
     return (
       <div className="jp-Launcher-body">
@@ -115,6 +176,7 @@ class Component extends React.Component {
           <p>
             <a
               className="preview-link"
+              href="#"
               style={{ marginLeft: '0px' }}
               onClick={(e) => {
                 e.preventDefault()
@@ -127,17 +189,50 @@ class Component extends React.Component {
 
           {error && (
             <p>
-              {error}
+              <strong>{error}</strong>
             </p>
           )}
 
-          <h2>Publish to Kyso</h2>
-          <p>
+          <h2>Publish {name && 'an update'} to Kyso</h2>
+
+          {busy &&
+            <div>
+              <Spinner name="circle" fadeIn="none" /> Publishing...
+            </div>
+          }
+
+          {published &&
+            <p>
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`https://kyso.io/${user.nickname}/${name}`}
+                >
+                  View {`${user.nickname}/${name}`} on Kyso
+                </a>
+            </p>
+          }
+
+          {name && !published &&
+            <p>
+              This study is published on Kyso (
+                <a
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`https://kyso.io/${user.nickname}/${name}`}
+                >
+                  {`${user.nickname}/${name}`}
+                </a>
+              )
+            </p>
+          }
+
+          {!published && !busy && <p>
             Choose which notebook will be the main notebook displayed on Kyso (don{"'"}t worry all files will
             be included in a reproducible repository on Kyso).
-          </p>
-          {!content && items.map(item => (
-            <p>
+          </p>}
+          {!published && !busy && items.map(item => (
+            <p key={item.name}>
               {item.type !== "notebook" && item.type !== "directory" && (
                 <span>{item.name}</span>
               )}
@@ -145,6 +240,7 @@ class Component extends React.Component {
                 <span>
                   {item.name}{'  '}
                   <a
+                    href="#"
                     className="preview-link"
                     onClick={(e) => {
                       e.preventDefault()
@@ -159,6 +255,7 @@ class Component extends React.Component {
                 <span>
                   <a
                     className="directory-link"
+                    href="#"
                     onClick={(e) => {
                       e.preventDefault()
                       this.onClick(item)
@@ -170,13 +267,6 @@ class Component extends React.Component {
               )}
             </p>
           ))}
-
-          {content && (
-            <Jupyter
-              content={content}
-              display="hidden"
-            />
-          )}
         </div>
       </div>
     )

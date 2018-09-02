@@ -1,8 +1,7 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
+import Jupyter from '@kyso/react-jupyter'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
-import Jupyter from '@kyso/react-jupyter'
 
 export const LAUNCHER_CLASS = 'kyso-preview'
 
@@ -21,9 +20,8 @@ export default class extends VDomRenderer {
   }
 
   render() {
-    ReactDOM.render(
-      <Component {...this.props} />,
-      this.node
+    return (
+      <Component {...this.props} />
     )
   }
 }
@@ -57,8 +55,11 @@ class Component extends React.Component {
     this.filebrowser.refresh()
   }
 
+  componentWillUnmount() {
+    console.log('componentWillUnmount')
+  }
+
   async onClick(item) {
-    console.log(item)
     if (item.type === "notebook") {
       const file = await this.filebrowser.manager.services.contents.get(item.path)
       this.setState({
@@ -96,6 +97,7 @@ class Component extends React.Component {
             <a
               className="preview-link"
               style={{ marginLeft: '0px' }}
+              href="#"
               onClick={(e) => {
                 e.preventDefault()
                 this.back()
@@ -111,10 +113,19 @@ class Component extends React.Component {
             </p>
           )}
 
-          <h2>Pick a Jupyter notebook to preview</h2>
-          <p>It will look the same as it will when its published to Kyso</p>
+          {!content && items.length === 0 &&
+            <p>No files</p>
+          }
+
+          {!content && items.length > 0 &&
+            <div>
+              <h2>Pick a Jupyter notebook to preview</h2>
+              <p>It will look the same as it will when its published to Kyso</p>
+            </div>
+          }
+
           {!content && items.map(item => (
-            <p>
+            <p key={item.name}>
               {item.type !== "notebook" && item.type !== "directory" && (
                 <span>{item.name}</span>
               )}
@@ -123,6 +134,7 @@ class Component extends React.Component {
                   {item.name}{'  '}
                   <a
                     className="preview-link"
+                    href="#"
                     onClick={(e) => {
                       e.preventDefault()
                       this.onClick(item)
@@ -136,6 +148,7 @@ class Component extends React.Component {
                 <span>
                   <a
                     className="directory-link"
+                    href="#"
                     onClick={(e) => {
                       e.preventDefault()
                       this.onClick(item)

@@ -1,7 +1,8 @@
 /* global localStorage */
+import { removeUserCookie } from '../utils/auth'
 
 const execute = ({ refreshUser }) => () => {
-  localStorage.removeItem('user')
+  removeUserCookie()
   refreshUser(null)
 }
 
