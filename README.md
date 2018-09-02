@@ -13,7 +13,7 @@ https://medium.com/front-end-hacking/use-github-oauth-as-your-sso-seamlessly-wit
 To install this extension into JupyterLab (requires node 5 or later), do the following:
 
 ```bash
-jupyter labextension install @jupyterlab/kyso
+jupyter labextension install @kyso/jupyterlab
 ```
 
 ## Development
