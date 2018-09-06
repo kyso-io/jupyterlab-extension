@@ -1,6 +1,4 @@
 import React from 'react'
-import JSZip from 'jszip'
-import crypto from 'crypto-js'
 import { Line } from 'rc-progress'
 import Spinner from 'react-spinkit'
 import { publish, Buffer } from '@kyso/publish'

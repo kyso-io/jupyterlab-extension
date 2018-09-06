@@ -1,35 +1,10 @@
-/* global localStorage */
-import Auth0Lock from 'auth0-lock'
 import { setCookie } from '../utils/auth'
-import config from '../config.js'
+import kysoPopup from '@kyso/auth-popup'
 
-const execute = ({ refreshMenuState }) => () => {
-  const lock = new Auth0Lock(
-    // admin site public client key
-    's22ZBD7K6xv9oB9OP51nA3dfI5k66BFm',
-    'auth0.kyso.io',
-    {
-      configurationBaseUrl: 'https://cdn.eu.auth0.com',
-      auth: {
-        params: {
-          api_url: config.API_URL
-        },
-        redirect: false
-      }
-    }
-  )
-
-  lock.on('authenticated', (authResult) => {
-    lock.getUserInfo(authResult.accessToken, (error, user) => {
-      if (error) throw error
-
-      setCookie(user.parse_user)
-      refreshMenuState()
-      lock.hide()
-    })
-  })
-
-  lock.show()
+const execute = ({ refreshMenuState }) => async () => {
+  const user = await kysoPopup()
+  setCookie(user)
+  refreshMenuState()
 }
 
 const command = ({ shell, refreshMenuState }) => ({
