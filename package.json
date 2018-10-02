@@ -12,16 +12,28 @@
   "private": false,
   "author": "Eoin Murray",
   "main": "lib/index.js",
+  "jupyterlab": {
+    "extension": true
+  },
+  "directories": {
+    "lib": "lib/"
+  },
+  "files": [
+    "lib/*.js",
+    "lib/**/*.js",
+    "schema/*.json",
+    "style/*.css"
+  ],
   "repository": "https://github.com/kyso-io/jupyterlab-kyso.git",
   "scripts": {
     "build": "babel src -d lib",
     "watch": "babel src -w -d lib"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.18.4",
+    "@jupyterlab/application": "^0.18.6",
     "@jupyterlab/apputils": "^0.18.4",
     "@jupyterlab/docmanager": "^0.18.4",
-    "@jupyterlab/filebrowser": "^0.18.4",
+    "@jupyterlab/filebrowser": "^0.18.6",
     "@jupyterlab/mainmenu": "^0.7.4",
     "@kyso/auth-popup": "^1.0.0",
     "@kyso/publish": "^1.0.3",
@@ -37,8 +49,5 @@
   "devDependencies": {
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1"
-  },
-  "jupyterlab": {
-    "extension": true
   }
 }

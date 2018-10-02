@@ -11,8 +11,13 @@ const openStudy = 'kyso:openStudy'
 const login = 'kyso:login'
 const logout = 'kyso:logout'
 
-export const activate = (app, palette, manager, mainMenu) => {
-  window.application = application
+const plugin = {
+  id: '@jupyterlab/kyso',
+  requires: [ICommandPalette, IDocumentManager, IMainMenu],
+  autoStart: true
+}
+
+export const activate = async (app, palette, manager, mainMenu, settingRegistry) => {
   const kysoMenu = new KysoMenu({
     mainMenu,
     manager,
@@ -27,11 +32,6 @@ export const activate = (app, palette, manager, mainMenu) => {
   kysoMenu.render()
 }
 
-const plugin = {
-  id: '@jupyterlab/kyso',
-  requires: [ICommandPalette, IDocumentManager, IMainMenu],
-  activate,
-  autoStart: true
-}
+plugin.activate = activate
 
 export default plugin
