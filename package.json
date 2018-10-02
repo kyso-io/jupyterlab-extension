@@ -24,7 +24,10 @@
     "schema/*.json",
     "style/*.css"
   ],
-  "repository": "https://github.com/kyso-io/jupyterlab-kyso.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kyso-io/jupyterlab-kyso.git"
+  },
   "scripts": {
     "build": "babel src -d lib",
     "watch": "babel src -w -d lib"
