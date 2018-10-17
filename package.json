@@ -33,11 +33,11 @@
     "watch": "babel src -w -d lib"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.18.6",
-    "@jupyterlab/apputils": "^0.18.4",
-    "@jupyterlab/docmanager": "^0.18.4",
-    "@jupyterlab/filebrowser": "^0.18.6",
-    "@jupyterlab/mainmenu": "^0.7.4",
+    "@jupyterlab/application": "^0.19.1",
+    "@jupyterlab/apputils": "^0.19.1",
+    "@jupyterlab/docmanager": "^0.19.1",
+    "@jupyterlab/filebrowser": "^0.19.3",
+    "@jupyterlab/mainmenu": "^0.8.1",
     "@kyso/auth-popup": "^1.0.0",
     "@kyso/publish": "^1.0.3",
     "@kyso/react-jupyter": "^0.4.0",
