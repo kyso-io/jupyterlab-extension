@@ -5,7 +5,6 @@ import * as application from '@jupyterlab/application'
 import KysoMenu from './menu'
 import '../style/index.css'
 
-const preview = 'kyso:preview'
 const publish = 'kyso:publish'
 const openStudy = 'kyso:openStudy'
 const login = 'kyso:login'
@@ -22,7 +21,6 @@ export const activate = async (app, palette, manager, mainMenu, settingRegistry)
     mainMenu,
     manager,
     app,
-    preview,
     publish,
     openStudy,
     login,

@@ -40,13 +40,12 @@
     "@jupyterlab/mainmenu": "^0.8.1",
     "@kyso/auth-popup": "^1.0.0",
     "@kyso/publish": "^1.0.3",
-    "@kyso/react-jupyter": "^0.4.0",
     "@phosphor/algorithm": "^1.1.2",
     "babel-plugin-transform-builtin-classes": "^0.6.1",
     "js-cookie": "^2.2.0",
     "jszip": "^3.1.5",
     "rc-progress": "^2.2.5",
-    "react": "^16.4.2",
+    "react": "16.4.2",
     "react-spinkit": "^3.0.0"
   },
   "devDependencies": {
