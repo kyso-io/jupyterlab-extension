@@ -1,5 +1,6 @@
 import { toArray } from '@phosphor/algorithm'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
+import config from '../config.js'
 
 const Private = {
   id: 0
@@ -29,7 +30,7 @@ const execute = (props) => async (args) => {
   if (kysofile) {
     const author = kysofile.split('/')[0].trim()
     if (author ===  props.user.nickname) {
-      window.open(`https://kyso.io/${author}/${kysofile.split('/')[1].trim()}`, '_blank')
+      window.open(`${config.UI_URL}/${author}/${kysofile.split('/')[1].trim()}`, '_blank')
     }
   }
 }

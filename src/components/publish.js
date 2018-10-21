@@ -223,7 +223,7 @@ class Component extends React.Component {
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={`https://kyso.io/${user.nickname}/${name}`}
+                  href={`${config.UI_URL}/${user.nickname}/${name}`}
                 >
                   View {`${user.nickname}/${name}`} on Kyso
                 </a>
