@@ -117,7 +117,7 @@ export default class {
     }
 
     app.commands.addCommand(publish, Publish(commandProps))
-    app.commands.addCommand(openStudy, OpenStudy(commandProps))
+    // app.commands.addCommand(openStudy, OpenStudy(commandProps))
     app.commands.addCommand(login, Login(commandProps))
     app.commands.addCommand(logout, Logout(commandProps))
     app.commands.addCommand(myProfile, MyProfile(commandProps))
@@ -136,7 +136,6 @@ export default class {
       if (kysofile) {
         mainMenu.kysoMenu.addGroup([
           { command: publish },
-          { command: openStudy },
           { command: myProfile }
         ], 20)
       } else {
