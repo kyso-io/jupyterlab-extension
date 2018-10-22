@@ -1,30 +1,24 @@
+import { IFileBrowserFactory } from '@jupyterlab/filebrowser'
 import { IDocumentManager } from '@jupyterlab/docmanager'
 import { ICommandPalette } from '@jupyterlab/apputils'
 import { IMainMenu } from '@jupyterlab/mainmenu'
-import * as application from '@jupyterlab/application'
 import KysoMenu from './menu'
 import '../style/index.css'
 
-const publish = 'kyso:publish'
-const openStudy = 'kyso:openStudy'
-const login = 'kyso:login'
-const logout = 'kyso:logout'
-
 const plugin = {
   id: '@jupyterlab/kyso',
-  requires: [ICommandPalette, IDocumentManager, IMainMenu],
+  requires: [ICommandPalette, IDocumentManager, IMainMenu, IFileBrowserFactory],
   autoStart: true
 }
 
-export const activate = async (app, palette, manager, mainMenu, settingRegistry) => {
+export const activate = async (app, palette, manager, mainMenu, fileBrowserTracker) => {
+  window.app = app // eslint-disable-line
+
   const kysoMenu = new KysoMenu({
+    fileBrowserTracker,
     mainMenu,
     manager,
-    app,
-    publish,
-    openStudy,
-    login,
-    logout
+    app
   })
 
   kysoMenu.render()

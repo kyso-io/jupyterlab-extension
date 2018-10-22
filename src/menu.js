@@ -4,9 +4,18 @@ import Publish from './commands/publish'
 import OpenStudy from './commands/open-study'
 import { getUser } from './utils/auth'
 import Logout from './commands/logout'
+import Help from './commands/help'
+import MyProfile from './commands/my-profile'
 import Login from './commands/login'
 
-const isKysoFile = async (manager, user) => {
+const publish = 'kyso:publish'
+const openStudy = 'kyso:openStudy'
+const login = 'kyso:login'
+const logout = 'kyso:logout'
+const help = 'kyso:help'
+const myProfile = 'kyso:myProfile'
+
+const isKysoFile = async (fileBrowserTracker, manager, user) => {
   const filebrowser = new FileBrowserModel({
     manager,
     driveName: '',
@@ -15,7 +24,10 @@ const isKysoFile = async (manager, user) => {
 
   let kysofile = null
   try {
-    const _kysofile = await filebrowser.manager.services.contents.get('.kyso')
+    console.log(`${fileBrowserTracker.tracker.currentWidget.model.path}/.kyso`)
+    const _kysofile = await filebrowser.manager.services.contents.get(
+      `${fileBrowserTracker.tracker.currentWidget.model.path}/.kyso`
+    )
     const author = _kysofile.content.split('/')[0].trim()
     if (author === user.nickname) {
       kysofile = _kysofile.content
@@ -38,68 +50,103 @@ class _KysoMenu extends JupyterLabMenu {
 export default class {
   constructor(props) {
     this.props = props
-    const { app, openStudy, publish, login, logout, manager } = this.props
-
-    const user = getUser()
-    this.state = { user, kysofile: null }
-
-    const commandProps = {
-      shell: app.shell,
-      manager,
-      refreshMenuState: (u) => this.refreshMenuState(u),
-      user
-    }
-
-    app.commands.addCommand(publish, Publish(commandProps))
-    app.commands.addCommand(openStudy, OpenStudy(commandProps))
-    app.commands.addCommand(login, Login(commandProps))
-    app.commands.addCommand(logout, Logout(commandProps))
+    this.state = {}
+    this.clean()
   }
 
   async refreshMenuState() {
     const user = getUser()
-    const { manager } = this.props
-
-    const kysofile = await isKysoFile(manager, user)
+    console.log('refreshMenuState', user)
+    const { manager, fileBrowserTracker } = this.props
+    const kysofile = await isKysoFile(fileBrowserTracker, manager, user)
     this.setState({ user, kysofile })
   }
 
   setState(obj) {
     this.state = Object.assign(this.state, obj)
+    console.log('setState', this.state)
     this.render()
   }
 
-  clean() {
-    const {
-      mainMenu,
-      app
-    } = this.props
+  async clean() {
+    const { app, manager, mainMenu, fileBrowserTracker } = this.props
+
+    const user = getUser()
+    this.state = {
+      user,
+      kysofile: await isKysoFile(fileBrowserTracker, manager, user)
+    }
+    console.log('clean', this.state)
+
+    const commandProps = {
+      shell: app.shell,
+      manager,
+      fileBrowserTracker,
+      refreshMenuState: () => this.refreshMenuState(),
+      user
+    }
 
     if (mainMenu.kysoMenu) {
       mainMenu.removeMenu(mainMenu.kysoMenu.menu)
     }
     mainMenu.kysoMenu = new _KysoMenu({ commands: app.commands }) // eslint-disable-line
     mainMenu.addMenu(mainMenu.kysoMenu.menu, { rank: 2000 })
+
+    if (publish in app.commands._commands) {
+      delete app.commands._commands[publish]
+    }
+
+    if (login in app.commands._commands) {
+      delete app.commands._commands[login]
+    }
+
+    if (logout in app.commands._commands) {
+      delete app.commands._commands[logout]
+    }
+
+    if (openStudy in app.commands._commands) {
+      delete app.commands._commands[openStudy]
+    }
+
+    if (myProfile in app.commands._commands) {
+      delete app.commands._commands[myProfile]
+    }
+
+    if (help in app.commands._commands) {
+      delete app.commands._commands[help]
+    }
+
+    app.commands.addCommand(publish, Publish(commandProps))
+    app.commands.addCommand(openStudy, OpenStudy(commandProps))
+    app.commands.addCommand(login, Login(commandProps))
+    app.commands.addCommand(logout, Logout(commandProps))
+    app.commands.addCommand(myProfile, MyProfile(commandProps))
+    app.commands.addCommand(help, Help(commandProps))
   }
 
-  render() {
+  async render() {
     // I'd love to use react, but its not possible
     // so I'll try simulate some features
-    this.clean()
+    await this.clean()
 
-    const {
-      mainMenu, openStudy, publish, logout, login
-    } = this.props
+    const { mainMenu } = this.props
 
     const { user, kysofile } = this.state
     if (user) {
       if (kysofile) {
-        mainMenu.kysoMenu.addGroup([{ command: publish }, { command: openStudy }], 20)
+        mainMenu.kysoMenu.addGroup([
+          { command: publish },
+          { command: openStudy },
+          { command: myProfile }
+        ], 20)
       } else {
-        mainMenu.kysoMenu.addGroup([{ command: publish }], 20)
+        mainMenu.kysoMenu.addGroup([
+          { command: publish },
+          { command: myProfile }
+        ], 20)
       }
 
-      mainMenu.kysoMenu.addGroup([{ command: logout }], 50)
+      mainMenu.kysoMenu.addGroup([{ command: help }, { command: logout }], 50)
     } else {
       mainMenu.kysoMenu.addGroup([{ command: login }], 20)
     }

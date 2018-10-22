@@ -1,6 +1,6 @@
-import { setCookie } from '../utils/auth'
 import kysoPopup from '@kyso/auth-popup'
-import config from '../config.js'
+import { setCookie } from '../utils/auth'
+import config from '../config'
 
 const execute = ({ refreshMenuState }) => async () => {
   const user = await kysoPopup({

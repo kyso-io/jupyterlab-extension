@@ -1,4 +1,3 @@
-/* global localStorage */
 import { removeUserCookie } from '../utils/auth'
 
 const execute = ({ refreshMenuState }) => () => {

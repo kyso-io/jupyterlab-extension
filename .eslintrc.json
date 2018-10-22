@@ -1,0 +1,29 @@
+{
+  "extends": [
+    "airbnb",
+    "plugin:promise/recommended"
+  ],
+  "rules": {
+    "semi": 0,
+    "no-console": 0,
+    "quotes": 0,
+    "comma-dangle": 0,
+    "no-underscore-dangle": 0,
+    "max-len": 0,
+    "no-use-before-define": 0,
+    "arrow-parens": 0,
+    "promise/prefer-await-to-then": "warn",
+    "promise/prefer-await-to-callbacks": "off",
+    "promise/avoid-new": "off",
+    "react/jsx-filename-extension": 0,
+    "consistent-return": 0,
+    "import/prefer-default-export": 0
+
+  },
+  "plugins": [
+      "react",
+      "jsx-a11y",
+      "import",
+      "promise"
+  ]
+}

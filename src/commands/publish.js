@@ -7,11 +7,9 @@ const Private = {
 
 const execute = (props) => (args) => {
   const { shell } = props
-
-  const cwd = args.cwd ? String(args.cwd) : ''
   const id = `publish-${Private.id + 1}`
 
-  const launcher = new Publish({ ...props, cwd })
+  const launcher = new Publish({ ...props })
 
   launcher.id = id
   launcher.title.label = 'Kyso Publish'

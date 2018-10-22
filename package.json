@@ -39,7 +39,7 @@
     "@jupyterlab/filebrowser": "^0.19.3",
     "@jupyterlab/mainmenu": "^0.8.1",
     "@kyso/auth-popup": "^1.0.0",
-    "@kyso/publish": "^1.0.3",
+    "@kyso/client": "^3.10.0",
     "@phosphor/algorithm": "^1.1.2",
     "babel-plugin-transform-builtin-classes": "^0.6.1",
     "js-cookie": "^2.2.0",
@@ -50,6 +50,13 @@
   },
   "devDependencies": {
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-plugin-transform-react-jsx": "^6.24.1"
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-watch": "^2.0.6",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-react": "^6.10.3"
   }
 }
