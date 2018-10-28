@@ -8,6 +8,8 @@ import { FileBrowserModel } from '@jupyterlab/filebrowser'
 import config from '../config'
 import { getUser } from '../utils/auth'
 
+const slugPattern = new RegExp('^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
+
 export const LAUNCHER_CLASS = 'kyso-publish'
 
 const sort = (items) => {
@@ -15,6 +17,23 @@ const sort = (items) => {
   const directories = items.filter(i => i.type === "directory")
   const files = items.filter(i => i.type !== "notebook" && i.type !== "directory")
   return [].concat(directories, notebooks, files)
+}
+
+const getName = (msg) => {
+  let name = prompt(msg) // eslint-disable-line
+  if (!slugPattern.test(name)) {
+    alert(`Study name can only consist of letters, numbers, '_' and '-'. ${name} didnt match.`) // eslint-disable-line
+    return null
+  }
+
+  name = name.toString().toLowerCase() // eslint-disable-line
+    .replace(/\s+/g, '-')     // Replace spaces with
+    .replace(/[^\w\-]+/g, '') // eslint-disable-line
+    .replace(/\-\-+/g, '-')   // eslint-disable-line
+    .replace(/^-+/, '')       // Trim - from start of text
+    .replace(/-+$/, '')
+
+  return name
 }
 
 export default class extends VDomRenderer {
@@ -123,12 +142,12 @@ class Component extends React.Component {
       name = kysofile.split('/')[1].trim()
       const author = kysofile.split('/')[0].trim()
       if (author !== user.nickname) {
-        name = prompt(`Name this study?\n(this was forked from ${author}/${name})`) // eslint-disable-line
+        name = getName(`Name this study?\n(this was forked from ${author}/${name})`)
       }
     }
 
     if (!kysofile) {
-      name = prompt('Name this study?') // eslint-disable-line
+      name = getName('Name this study?') // eslint-disable-line
 
       const existingStudy = await kyso.getStudy({
         token: user.sessionToken,
@@ -220,7 +239,7 @@ class Component extends React.Component {
           )}
 
           {name && (
-            <h2>Publishing update for{'  '}
+            <h2>Publishing{'  '}
               <a
                 href={`${config.UI_URL}/${user.nickname}/${name}`}
                 rel="noopener noreferrer"
