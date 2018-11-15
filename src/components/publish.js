@@ -3,6 +3,7 @@ import React from 'react'
 import { Line } from 'rc-progress'
 import Spinner from 'react-spinkit'
 import kyso from '@kyso/client'
+import prepareFiles from '@kyso/client/utils/prepare-files'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
 import config from '../config'
@@ -11,6 +12,11 @@ import { getUser } from '../utils/auth'
 const slugPattern = new RegExp('^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
 
 export const LAUNCHER_CLASS = 'kyso-publish'
+
+const flatten = (arr) =>
+  arr.reduce((flat, toFlatten) =>
+    flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten)
+  , [])
 
 const sort = (items) => {
   const notebooks = items.filter(i => i.type === "notebook")
@@ -21,6 +27,9 @@ const sort = (items) => {
 
 const getName = (msg) => {
   let name = prompt(msg) // eslint-disable-line
+
+  if (!name) return false
+
   if (!slugPattern.test(name)) {
     alert(`Study name can only consist of letters, numbers, '_' and '-'. ${name} didnt match.`) // eslint-disable-line
     return null
@@ -58,6 +67,7 @@ class Component extends React.Component {
       user: getUser(),
       ...props,
     }
+
     this.filebrowser = new FileBrowserModel({
       manager: props.manager, // eslint-disable-line
       driveName: '',
@@ -70,7 +80,8 @@ class Component extends React.Component {
       error: null,
       busy: false,
       published: false,
-      progress: null
+      progress: null,
+      size: 0
     }
   }
 
@@ -79,18 +90,24 @@ class Component extends React.Component {
     if (kysofile) {
       const author = kysofile.split('/')[0].trim()
       if (author === this.props.user.nickname) {
-        this.setState({ name: kysofile.split('/')[1].trim() })
+        this.setState({ name: kysofile.split('/')[1].trim(), hasKysoFile: true })
       }
     }
 
-    this.filebrowser.refreshed.connect((fb) => {
-      this.setState({
-        items: sort(fb._items)
+    const manager = this.props.manager
+    const fetchItems = async (path) => {
+      const contents = await manager.services.contents.get(path)
+      const funcs = contents.content.map((item) => {
+        if (item.type !== 'directory') return item
+        return fetchItems(item.path)
       })
-    })
+      return Promise.all(funcs)
+    }
 
-    this.filebrowser.refresh()
-    this.filebrowser.cd(this.getCwd())
+    const items = await fetchItems(this.getCwd())
+    this.setState({
+      items: flatten(sort(items))
+    })
   }
 
   onClick(item) {
@@ -135,19 +152,28 @@ class Component extends React.Component {
     const { user, refreshMenuState } = this.props
     const filebrowser = this.filebrowser
 
-    let name = null
+    let { name } = this.state
     const kysofile = await this.getKysoFile()
 
     if (kysofile) {
-      name = kysofile.split('/')[1].trim()
+      if (!name) {
+        name = kysofile.split('/')[1].trim()
+      }
+
       const author = kysofile.split('/')[0].trim()
       if (author !== user.nickname) {
-        name = getName(`Name this study?\n(this was forked from ${author}/${name})`)
+        if (!name) {
+          name = getName(`Name this study?\n(this was forked from ${author}/${name})`)
+          if (!name) return this.setState({ busy: false })
+        }
       }
     }
 
     if (!kysofile) {
-      name = getName('Name this study?') // eslint-disable-line
+      if (!name) {
+        name = getName('Name this study?') // eslint-disable-line
+        if (!name) return this.setState({ busy: false })
+      }
 
       const existingStudy = await kyso.getStudy({
         token: user.sessionToken,
@@ -169,6 +195,8 @@ class Component extends React.Component {
       return // the user cancelled the prompts
     }
 
+    console.log({ items })
+
     const promises = items.map(async (item) => {
       const file = await filebrowser.manager.services.contents.get(item.path)
       const data = file.format === 'json' ? JSON.stringify(file.content) : file.content
@@ -176,7 +204,13 @@ class Component extends React.Component {
     })
     const files = await Promise.all(promises)
 
-    this.setState({ busy: true, name })
+    const size = files.reduce((acc, curr) => acc + curr.data.length, 0)
+
+    this.setState({ busy: true, name, size })
+
+    console.log({ files })
+    const { zip, fileMap, versionHash } = await prepareFiles(files)
+    console.log({ zip, fileMap, versionHash })
 
     try {
       await kyso.publish({
@@ -198,7 +232,7 @@ class Component extends React.Component {
       return this.setState({ error: 'An unknown error occurred.' })
     }
 
-    if (name && !kysofile) {
+    if (name) {
       await filebrowser.upload(
         new File([`${user.nickname}/${name}`],
           `.kyso`,
@@ -211,8 +245,11 @@ class Component extends React.Component {
   }
 
   render() {
-    const { items, name, error, progress, busy, published } = this.state
+    const { items, name, size, error, hasKysoFile, progress, busy, published } = this.state
     const { user } = this.props // eslint-disable-line
+
+    const i = Math.floor(Math.log(size) / Math.log(1024))
+    const readableSize = (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i] // eslint-disable-line
 
     return (
       <div className="jp-Launcher-body">
@@ -239,7 +276,10 @@ class Component extends React.Component {
           )}
 
           {name && (
-            <h2>Publishing{'  '}
+            <h2>
+              {hasKysoFile && 'Publishing an update of '}
+              {!hasKysoFile && 'Publishing new study: '}
+              {'  '}
               <a
                 href={`${config.UI_URL}/${user.nickname}/${name}`}
                 rel="noopener noreferrer"
@@ -249,7 +289,6 @@ class Component extends React.Component {
               </a>
             </h2>
           )}
-
 
           {published &&
             <p>
@@ -285,18 +324,38 @@ class Component extends React.Component {
 
           {progress &&
             <div>
+              Uploading, size:{'  '}{readableSize}
+              <br />
               <Line percent={progress.toString()} /> {`${progress}%`}
             </div>
           }
 
+          {!error && !published && !busy && (
+            <div>
+              <p>Study name {hasKysoFile && `(leave blank to update current study ${name})`}:</p>
+              <input
+                className="name-input"
+                value={name || ''}
+                onChange={(e) => {
+                  this.setState({ name: e.target.value })
+                }}
+                type="text"
+              />
+            </div>
+          )}
+
           {!error && !published && !busy && items.map(item => (
-            <p key={item.name}>
+            <p key={item.path}>
               {item.type !== "notebook" && item.type !== "directory" && (
-                <span>{item.name}</span>
+                <span
+
+                >{item.path}</span>
               )}
               {item.type === "notebook" && (
                 <span>
-                  {item.name}{'  '}
+                  <span>
+                    {item.path}{'  '}
+                  </span>
                   <a
                     href="/preview-link"
                     className="preview-link"
@@ -305,7 +364,7 @@ class Component extends React.Component {
                       this.onClick(item)
                     }}
                   >
-                    Select
+                    Select as main
                   </a>
                 </span>
               )}
@@ -319,7 +378,7 @@ class Component extends React.Component {
                       this.onClick(item)
                     }}
                   >
-                    {item.name}/
+                    {item.path}/
                   </a>
                 </span>
               )}

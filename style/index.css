@@ -1,4 +1,21 @@
 
+.name-input {
+  outline: none;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #eee;
+  margin-bottom: 14px;
+  margin-left: 8px;
+  min-width: 200px;
+
+}
+
+.name-input:hover,
+.name-input:focus,
+.name-input:active {
+  outline: none;
+}
+
 .preview-link {
     background-color: #2a7ae2;
     color: white;

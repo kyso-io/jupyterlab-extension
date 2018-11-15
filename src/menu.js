@@ -23,7 +23,6 @@ const isKysoFile = async (fileBrowserTracker, manager, user) => {
 
   let kysofile = null
   try {
-    console.log(`${fileBrowserTracker.tracker.currentWidget.model.path}/.kyso`)
     const _kysofile = await filebrowser.manager.services.contents.get(
       `${fileBrowserTracker.tracker.currentWidget.model.path}/.kyso`
     )
