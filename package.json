@@ -1,6 +1,6 @@
 {
   "name": "@kyso/jupyterlab",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Push to Kyso from JupyterLab",
   "keywords": [
     "kyso",
