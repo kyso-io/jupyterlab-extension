@@ -13,7 +13,17 @@
   "author": "Eoin Murray",
   "main": "lib/index.js",
   "jupyterlab": {
-    "extension": true
+    "extension": true,
+    "discovery": {
+      "server": {
+        "managers": [
+          "pip"
+        ],
+        "base": {
+          "name": "kyso_jupyterlab"
+        }
+      }
+    }
   },
   "directories": {
     "lib": "lib/"
@@ -35,9 +45,11 @@
   "dependencies": {
     "@jupyterlab/application": "^0.18.4",
     "@jupyterlab/apputils": "^0.18.4",
+    "@jupyterlab/coreutils": "^2.2.1",
     "@jupyterlab/docmanager": "^0.18.4",
     "@jupyterlab/filebrowser": "^0.18.6",
     "@jupyterlab/mainmenu": "^0.7.4",
+    "@jupyterlab/services": "^3.2.1",
     "@kyso/auth-popup": "^1.0.0",
     "@kyso/client": "^4.0.5",
     "@phosphor/algorithm": "^1.1.2",

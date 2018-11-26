@@ -28,6 +28,8 @@ jupyter labextension install @kyso/jupyterlab
 jupyter labextension install @kyso/jupyterlab@jupyterlab-0.34.9
 ```
 
+Note, this version just lets you publish to kyso, you can't download project from kyso to your JupyterLab instance.
+
 ## Development
 
 For a development install, do the following in the repository directory:
@@ -42,4 +44,20 @@ yarn run watch
 ```bash
 # and in another shell
 jupyter lab --watch
+```
+
+## Deployment
+
+
+To publish the client side extension:
+
+```
+npm publish
+```
+
+To publish the server side extension:
+
+```
+python3 setup.py sdist
+twine upload dist/*
 ```
