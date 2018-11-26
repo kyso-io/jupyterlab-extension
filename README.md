@@ -20,6 +20,8 @@ To install this extension into JupyterLab (requires node 5 or later), do the fol
 
 ```bash
 jupyter labextension install @kyso/jupyterlab
+pip install kyso_jupyterlab
+jupyter serverextension enable --sys-prefix kyso_jupyterlab
 ```
 
 ### Jupyter 0.34
