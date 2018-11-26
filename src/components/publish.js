@@ -347,9 +347,7 @@ class Component extends React.Component {
           {!error && !published && !busy && items.map(item => (
             <p key={item.path}>
               {item.type !== "notebook" && item.type !== "directory" && (
-                <span
-
-                >{item.path}</span>
+                <span>{item.path}</span>
               )}
               {item.type === "notebook" && (
                 <span>
