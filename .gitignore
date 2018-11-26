@@ -1,3 +1,5 @@
 node_modules
 jupyterlab
 dist
+__pycache__
+kyso_jupyterlab.egg-info

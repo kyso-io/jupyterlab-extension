@@ -3,6 +3,7 @@ import kyso from '@kyso/client'
 import { URLExt } from '@jupyterlab/coreutils'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { ServerConnection } from '@jupyterlab/services'
+import { FileBrowserModel } from '@jupyterlab/filebrowser'
 import config from '../config'
 import { getUser } from '../utils/auth'
 
@@ -56,6 +57,14 @@ class Component extends React.Component {
     })
 
     this.setState({ studies })
+
+    this.filebrowser = new FileBrowserModel({
+      manager: this.props.manager, // eslint-disable-line
+      driveName: '',
+      state: null
+    })
+
+    console.log(this.filebrowser, this.props.fileBrowserTracker)
   }
 
   getCwd() {
@@ -116,7 +125,8 @@ class Component extends React.Component {
         alert(data.message)
       }
 
-      setTimeout(() => { this.setState({ busy: false }) }, 2500)
+      this.props.fileBrowserTracker.defaultBrowser.model.refresh()
+      this.setState({ busy: false })
     } catch (err) {
       // throw ServerConnection.NetworkError
       console.error(err)
@@ -176,6 +186,8 @@ class CloneButton extends Component {
       busy: false
     }
   }
+
+  componentDidMount() {}
 
   render() {
     const { busy } = this.state
