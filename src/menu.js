@@ -56,7 +56,6 @@ export default class {
 
   async refreshMenuState() {
     const user = getUser()
-    console.log('refreshMenuState', user)
     const { manager, fileBrowserTracker } = this.props
     const kysofile = await isKysoFile(fileBrowserTracker, manager, user)
     this.setState({ user, kysofile })
@@ -64,7 +63,6 @@ export default class {
 
   setState(obj) {
     this.state = Object.assign(this.state, obj)
-    console.log('setState', this.state)
     this.render()
   }
 
@@ -76,7 +74,6 @@ export default class {
       user,
       kysofile: await isKysoFile(fileBrowserTracker, manager, user)
     }
-    console.log('clean', this.state)
 
     const commandProps = {
       shell: app.shell,

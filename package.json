@@ -43,11 +43,11 @@
     "watch": "babel src -w -d lib"
   },
   "dependencies": {
-    "@jupyterlab/application": "^0.18.4",
-    "@jupyterlab/apputils": "^0.18.4",
+    "@jupyterlab/application": "^0.19.1",
+    "@jupyterlab/apputils": "^0.19.1",
     "@jupyterlab/coreutils": "^2.2.1",
-    "@jupyterlab/docmanager": "^0.18.4",
-    "@jupyterlab/filebrowser": "^0.18.6",
+    "@jupyterlab/docmanager": "^0.19.1",
+    "@jupyterlab/filebrowser": "^0.19.3",
     "@jupyterlab/mainmenu": "^0.7.4",
     "@jupyterlab/services": "^3.2.1",
     "@kyso/auth-popup": "^1.0.0",
