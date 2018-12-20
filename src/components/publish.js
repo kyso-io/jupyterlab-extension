@@ -213,12 +213,17 @@ class Component extends React.Component {
 
     const size = files.reduce((acc, curr) => acc + curr.data.length, 0)
 
-    // console.log(files, cwd)
-
     this.setState({ busy: true, name, size })
     const { zip, fileMap, versionHash } = await prepareFiles(files, { base64: true })
     // saveAs(zip, "kyso.zip")
-    // console.log({ zip, fileMap, versionHash })
+    console.log({
+      zip,
+      fileMap,
+      versionHash,
+      main: main.replace(`${cwd}/`, ''),
+      files,
+      cwd
+    })
 
     try {
       await kyso.publish({
@@ -241,10 +246,12 @@ class Component extends React.Component {
       return this.setState({ error: 'An unknown error occurred.' })
     }
 
+    console.log({ name })
     if (name) {
+      console.log(`${user.nickname}/${name}`)
       await filebrowser.upload(
         new File([`${user.nickname}/${name}`],
-          `.kyso`,
+          `${cwd}/.kyso`,
           { type: 'text/plain' }
         )
       )
