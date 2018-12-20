@@ -1,13 +1,15 @@
 /* global File */
 import React from 'react'
+import saveAs from 'file-saver'
+import kyso from '@kyso/client'
 import { Line } from 'rc-progress'
 import Spinner from 'react-spinkit'
-import kyso from '@kyso/client'
-import prepareFiles from '@kyso/client/utils/prepare-files'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
+import prepareFiles from '@kyso/client/lib/utils/prepare-files'
 import config from '../config'
 import { getUser } from '../utils/auth'
+
 
 const slugPattern = new RegExp('^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
 
@@ -152,6 +154,8 @@ class Component extends React.Component {
     const { user, refreshMenuState } = this.props
     const filebrowser = this.filebrowser
 
+    const cwd = this.getCwd()
+
     let { name } = this.state
     const kysofile = await this.getKysoFile()
 
@@ -195,29 +199,34 @@ class Component extends React.Component {
       return // the user cancelled the prompts
     }
 
-    console.log({ items })
-
     const promises = items.map(async (item) => {
       const file = await filebrowser.manager.services.contents.get(item.path)
+      console.log(file)
       const data = file.format === 'json' ? JSON.stringify(file.content) : file.content
-      return { path: file.path, data: kyso.Buffer.from(data) }
+      if (file.format === "base64") {
+        return { path: file.path.replace(`${cwd}/`, ''), data }
+      }
+      return { path: file.path.replace(`${cwd}/`, ''), data: btoa(data) }
     })
+
     const files = await Promise.all(promises)
 
     const size = files.reduce((acc, curr) => acc + curr.data.length, 0)
 
-    this.setState({ busy: true, name, size })
+    // console.log(files, cwd)
 
-    console.log({ files })
-    const { zip, fileMap, versionHash } = await prepareFiles(files)
-    console.log({ zip, fileMap, versionHash })
+    this.setState({ busy: true, name, size })
+    const { zip, fileMap, versionHash } = await prepareFiles(files, { base64: true })
+    // saveAs(zip, "kyso.zip")
+    // console.log({ zip, fileMap, versionHash })
 
     try {
       await kyso.publish({
         name,
-        main,
+        main: main.replace(`${cwd}/`, ''),
         token: user.sessionToken,
         files,
+        zipOpts: { base64: true },
         apiUrl: config.API_URL,
         onProgress: (ev) => {
           this.setState({ progress: Math.round((ev.loaded * 100) / ev.total) })
