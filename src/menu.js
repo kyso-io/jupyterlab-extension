@@ -44,14 +44,17 @@ class _KysoMenu extends JupyterLabMenu {
     super(options)
     this.menu.title.label = 'Kyso'
     this.editorViewers = new Set()
+    console.log('constructor for _KysoMenu')
   }
 }
 
 export default class {
   constructor(props) {
+    console.log('constructor for KysoMenu')
     this.props = props
     this.state = {}
-    this.clean()
+    // this.clean()
+    console.log('constructor for KysoMenu (2)')
   }
 
   async refreshMenuState() {
@@ -67,9 +70,12 @@ export default class {
   }
 
   async clean() {
+    console.log('clean')
     const { app, manager, mainMenu, fileBrowserTracker } = this.props
 
+    console.log('getting user')
     const user = getUser()
+    console.log('got user')
     this.state = {
       user,
       kysofile: await isKysoFile(fileBrowserTracker, manager, user)
@@ -83,9 +89,11 @@ export default class {
       user
     }
 
+    console.log('adding menu stuff')
     if (mainMenu.kysoMenu) {
       mainMenu.removeMenu(mainMenu.kysoMenu.menu)
     }
+
     mainMenu.kysoMenu = new _KysoMenu({ commands: app.commands }) // eslint-disable-line
     mainMenu.addMenu(mainMenu.kysoMenu.menu, { rank: 2000 })
 
@@ -117,6 +125,8 @@ export default class {
       delete app.commands._commands[help]
     }
 
+    console.log('adding commands')
+
     app.commands.addCommand(publish, Publish(commandProps))
     app.commands.addCommand(clone, Clone(commandProps))
     app.commands.addCommand(login, Login(commandProps))
@@ -126,6 +136,7 @@ export default class {
   }
 
   async render() {
+    console.log('render')
     // I'd love to use react, but its not possible
     // so I'll try simulate some features
     await this.clean()
@@ -133,6 +144,7 @@ export default class {
     const { mainMenu } = this.props
 
     const { user } = this.state
+    console.log('adding commands in render')
     if (user) {
       mainMenu.kysoMenu.addGroup([
         { command: publish },
