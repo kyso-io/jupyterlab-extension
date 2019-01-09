@@ -5,7 +5,6 @@ import { VDomRenderer } from '@jupyterlab/apputils'
 import { ServerConnection } from '@jupyterlab/services'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
 import config from '../config'
-import { getUser } from '../utils/auth'
 
 export const LAUNCHER_CLASS = 'kyso-publish'
 
@@ -39,10 +38,6 @@ class Component extends React.Component {
   constructor(props) {
     super(props)
     this.props = props
-    this.props = {
-      user: getUser(),
-      ...props
-    }
 
     this.state = {
       studies: [],

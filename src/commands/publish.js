@@ -7,7 +7,8 @@ const Private = {
 
 const execute = (props) => (args) => {
   const { shell } = props
-  const id = `publish-${Private.id + 1}`
+  const id = `publish-${Private.id}`
+  Private.id += 1
 
   const launcher = new Publish({ ...props })
 
@@ -30,7 +31,7 @@ const execute = (props) => (args) => {
 }
 
 const command = (props) => ({
-  label: 'Publish to Kyso',
+  label: props.labelOverride || 'Publish to Kyso',
   execute: execute(props)
 })
 

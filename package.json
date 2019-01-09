@@ -51,7 +51,7 @@
     "@jupyterlab/mainmenu": "^0.8.1",
     "@jupyterlab/services": "^3.2.1",
     "@kyso/auth-popup": "^1.0.0",
-    "@kyso/client": "^4.0.11",
+    "@kyso/client": "^4.1.3",
     "@phosphor/algorithm": "^1.1.2",
     "babel-cli": "^6.26.0",
     "babel-plugin-transform-builtin-classes": "^0.6.1",
