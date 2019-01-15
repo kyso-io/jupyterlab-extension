@@ -2,10 +2,12 @@
 import React from 'react'
 import kyso from '@kyso/client'
 import { Line } from 'rc-progress'
+import { Base64 } from 'js-base64'
 import Spinner from 'react-spinkit'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
 import config from '../config'
+
 
 const slugPattern = new RegExp('^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
 
@@ -209,7 +211,8 @@ class Component extends React.Component {
       if (file.format === "base64") {
         return { path, data }
       }
-      return { path, data: btoa(data) }
+
+      return { path, data: Base64.encode(data) }
     })
 
     const files = await Promise.all(promises)
