@@ -1,6 +1,7 @@
 /* global File */
 import React from 'react'
 import kyso from '@kyso/client'
+import { Base64 } from 'js-base64'
 import { Line } from 'rc-progress'
 import { Base64 } from 'js-base64'
 import Spinner from 'react-spinkit'
