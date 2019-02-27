@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-* JupyterLab 0.34 or more
+* JupyterLab 0.35 or more
 * A Kyso account
 
 ## Installation
@@ -23,14 +23,6 @@ jupyter labextension install @kyso/jupyterlab
 pip install kyso_jupyterlab
 jupyter serverextension enable --sys-prefix kyso_jupyterlab
 ```
-
-### Jupyter 0.34
-
-```bash
-jupyter labextension install @kyso/jupyterlab@jupyterlab-0.34.9
-```
-
-Note, this version just lets you publish to kyso, you can't download project from kyso to your JupyterLab instance.
 
 ## Development
 

@@ -1,15 +1,13 @@
 /* global File */
 import React from 'react'
-import saveAs from 'file-saver'
 import kyso from '@kyso/client'
 import { Base64 } from 'js-base64'
 import { Line } from 'rc-progress'
+import { Base64 } from 'js-base64'
 import Spinner from 'react-spinkit'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
-import prepareFiles from '@kyso/client/lib/utils/prepare-files'
 import config from '../config'
-import { getUser } from '../utils/auth'
 
 
 const slugPattern = new RegExp('^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
@@ -30,9 +28,7 @@ const sort = (items) => {
 
 const getName = (msg) => {
   let name = prompt(msg) // eslint-disable-line
-
   if (!name) return false
-
   if (!slugPattern.test(name)) {
     alert(`Study name can only consist of letters, numbers, '_' and '-'. ${name} didnt match.`) // eslint-disable-line
     return null
@@ -66,11 +62,6 @@ class Component extends React.Component {
   constructor(props) {
     super(props)
     this.props = props
-    this.props = {
-      user: getUser(),
-      ...props,
-    }
-
     this.filebrowser = new FileBrowserModel({
       manager: props.manager, // eslint-disable-line
       driveName: '',
@@ -81,6 +72,7 @@ class Component extends React.Component {
       items: [],
       content: null,
       error: null,
+      team: props.team || null,
       busy: false,
       published: false,
       progress: null,
@@ -89,15 +81,17 @@ class Component extends React.Component {
   }
 
   async componentDidMount() {
+    const { team, user, manager } = this.props
     const kysofile = await this.getKysoFile()
     if (kysofile) {
       const author = kysofile.split('/')[0].trim()
-      if (author === this.props.user.nickname) {
-        this.setState({ name: kysofile.split('/')[1].trim(), hasKysoFile: true })
+      if (author === user.nickname || author === team) {
+        this.setState({ name: kysofile.split('/')[1].trim(), hasKysoFile: kysofile })
+      } else {
+        this.setState({ hasKysoFile: kysofile })
       }
     }
 
-    const manager = this.props.manager
     const fetchItems = async (path) => {
       const contents = await manager.services.contents.get(path)
       const funcs = contents.content.map((item) => {
@@ -152,7 +146,7 @@ class Component extends React.Component {
   async startPublish(main) {
     this.setState({ busy: true, progress: null })
     const { items } = this.state
-    const { user, refreshMenuState } = this.props
+    const { user, team, refreshMenuState } = this.props
     const filebrowser = this.filebrowser
 
     const cwd = this.getCwd()
@@ -160,13 +154,18 @@ class Component extends React.Component {
     let { name } = this.state
     const kysofile = await this.getKysoFile()
 
+    let teamnames = []
+    if (user.teams) {
+      teamnames = user.teams.map(team => team.name)
+    }
+
     if (kysofile) {
       if (!name) {
         name = kysofile.split('/')[1].trim()
       }
 
       const author = kysofile.split('/')[0].trim()
-      if (author !== user.nickname) {
+      if (author !== user.nickname && !teamnames.includes(author)) {
         if (!name) {
           name = getName(`Name this study?\n(this was forked from ${author}/${name})`)
           if (!name) return this.setState({ busy: false })
@@ -184,6 +183,7 @@ class Component extends React.Component {
         token: user.sessionToken,
         author: user.nickname,
         name,
+        team,
         apiUrl: config.API_URL
       })
 
@@ -221,8 +221,16 @@ class Component extends React.Component {
     const size = files.reduce((acc, curr) => acc + curr.data.length, 0)
 
     this.setState({ busy: true, name, size })
-    const { zip, fileMap, versionHash } = await prepareFiles(files, { base64: true })
+    // const { zip, fileMap, versionHash } = await prepareFiles(files, { base64: true })
     // saveAs(zip, "kyso.zip")
+    // console.log({
+    //   zip,
+    //   fileMap,
+    //   versionHash,
+    //   main: main.replace(`${cwd}/`, ''),
+    //   files,
+    //   cwd
+    // })
 
     try {
       await kyso.publish({
@@ -230,6 +238,7 @@ class Component extends React.Component {
         main: main.replace(`${cwd}/`, ''),
         token: user.sessionToken,
         files,
+        team,
         zipOpts: { base64: true },
         apiUrl: config.API_URL,
         onProgress: (ev) => {
@@ -245,22 +254,18 @@ class Component extends React.Component {
       return this.setState({ error: 'An unknown error occurred.' })
     }
 
-    console.log({ name })
     if (name) {
-      console.log(`${user.nickname}/${name}`)
-      await filebrowser.upload(
-        new File([`${user.nickname}/${name}`],
-          `${cwd}/.kyso`,
-          { type: 'text/plain' }
-        )
-      )
+      let n = `${user.nickname}/${name}`
+      if (team) n = `${team}/${name}`
+      const f = new File([n], `${cwd}/.kyso`, { type: 'text/plain' })
+      await filebrowser.upload(f)
       refreshMenuState()
     }
     return this.setState({ progress: null, busy: false, published: true })
   }
 
   render() {
-    const { items, name, size, error, hasKysoFile, progress, busy, published } = this.state
+    const { items, name, team, size, error, hasKysoFile, progress, busy, published } = this.state
     const { user } = this.props // eslint-disable-line
 
     const i = Math.floor(Math.log(size) / Math.log(1024))
@@ -269,26 +274,13 @@ class Component extends React.Component {
     return (
       <div className="jp-Launcher-body">
         <div className="jp-Launcher-content">
-
-          {!error && !published && !busy &&
-            <p>
-              <a
-                className="preview-link"
-                href="/preview-link"
-                style={{ marginLeft: '0px' }}
-                onClick={(e) => {
-                  e.preventDefault()
-                  this.back()
-                }}
-              >
-                {'<'} back
-              </a>
-            </p>
+          {!name &&
+            <React.Fragment>
+              {!team && <h2>Publish to Kyso</h2>}
+              {team && <h2>Publish to your team: {team}</h2>}
+              {hasKysoFile && `Publishing an update of ${hasKysoFile}`}
+            </React.Fragment>
           }
-
-          {!name && (
-            <h2>Publish to Kyso</h2>
-          )}
 
           {name && (
             <h2>
@@ -296,11 +288,11 @@ class Component extends React.Component {
               {!hasKysoFile && 'Publishing new study: '}
               {'  '}
               <a
-                href={`${config.UI_URL}/${user.nickname}/${name}`}
+                href={`${config.UI_URL}/${team || user.nickname}/${name}`}
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                {user.nickname}/{name}
+                <React.Fragment>{team || user.nickname}/{name}</React.Fragment>
               </a>
             </h2>
           )}
@@ -310,9 +302,9 @@ class Component extends React.Component {
               <a
                 target="_blank"
                 rel="noopener noreferrer"
-                href={`${config.UI_URL}/${user.nickname}/${name}`}
+                href={`${config.UI_URL}/${team || user.nickname}/${name}`}
               >
-                View {`${user.nickname}/${name}`} on Kyso
+                <React.Fragment>View {`${team || user.nickname}/${name}`} on Kyso</React.Fragment>
               </a>
             </p>
           }

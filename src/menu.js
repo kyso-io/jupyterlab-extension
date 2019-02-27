@@ -8,14 +8,6 @@ import MyProfile from './commands/my-profile'
 import Login from './commands/login'
 import Clone from './commands/clone'
 
-const publish = 'kyso:publish'
-const openStudy = 'kyso:openStudy'
-const login = 'kyso:login'
-const logout = 'kyso:logout'
-const help = 'kyso:help'
-const clone = 'kyso:clone'
-const myProfile = 'kyso:myProfile'
-
 const isKysoFile = async (fileBrowserTracker, manager, user) => {
   const filebrowser = new FileBrowserModel({
     manager,
@@ -44,21 +36,17 @@ class _KysoMenu extends JupyterLabMenu {
     super(options)
     this.menu.title.label = 'Kyso'
     this.editorViewers = new Set()
-    console.log('constructor for _KysoMenu')
   }
 }
 
 export default class {
   constructor(props) {
-    console.log('constructor for KysoMenu')
     this.props = props
     this.state = {}
-    // this.clean()
-    console.log('constructor for KysoMenu (2)')
   }
 
   async refreshMenuState() {
-    const user = getUser()
+    const user = await getUser()
     const { manager, fileBrowserTracker } = this.props
     const kysofile = await isKysoFile(fileBrowserTracker, manager, user)
     this.setState({ user, kysofile })
@@ -70,12 +58,9 @@ export default class {
   }
 
   async clean() {
-    console.log('clean')
     const { app, manager, mainMenu, fileBrowserTracker } = this.props
 
-    console.log('getting user')
-    const user = getUser()
-    console.log('got user')
+    const user = await getUser()
     this.state = {
       user,
       kysofile: await isKysoFile(fileBrowserTracker, manager, user)
@@ -89,54 +74,74 @@ export default class {
       user
     }
 
-    console.log('adding menu stuff')
     if (mainMenu.kysoMenu) {
       mainMenu.removeMenu(mainMenu.kysoMenu.menu)
     }
 
     mainMenu.kysoMenu = new _KysoMenu({ commands: app.commands }) // eslint-disable-line
+    mainMenu.kysoMenu.publishMenu = new JupyterLabMenu({
+      commands: app.commands
+    }, false)
+
+    mainMenu.kysoMenu.publishMenu.menu.title.label = 'Publish'
     mainMenu.addMenu(mainMenu.kysoMenu.menu, { rank: 2000 })
 
-    if (publish in app.commands._commands) {
-      delete app.commands._commands[publish]
+    if ('kyso:publish' in app.commands._commands) {
+      delete app.commands._commands['kyso:publish']
     }
 
-    if (clone in app.commands._commands) {
-      delete app.commands._commands[clone]
+    if ('kyso:clone' in app.commands._commands) {
+      delete app.commands._commands['kyso:clone']
     }
 
-    if (login in app.commands._commands) {
-      delete app.commands._commands[login]
+    if ('kyso:login' in app.commands._commands) {
+      delete app.commands._commands['kyso:login']
     }
 
-    if (logout in app.commands._commands) {
-      delete app.commands._commands[logout]
+    if ('kyso:logout' in app.commands._commands) {
+      delete app.commands._commands['kyso:logout']
     }
 
-    if (openStudy in app.commands._commands) {
-      delete app.commands._commands[openStudy]
+    if ('kyso:openStudy' in app.commands._commands) {
+      delete app.commands._commands['kyso:openStudy']
     }
 
-    if (myProfile in app.commands._commands) {
-      delete app.commands._commands[myProfile]
+    if ('kyso:myProfile' in app.commands._commands) {
+      delete app.commands._commands['kyso:myProfile']
     }
 
-    if (help in app.commands._commands) {
-      delete app.commands._commands[help]
+    if ('kyso:help' in app.commands._commands) {
+      delete app.commands._commands['kyso:help']
     }
 
-    console.log('adding commands')
+    if (user.teams) {
+      user.teams.forEach(team => {
+        if (`publish:team:${team.name}` in app.commands._commands) {
+          delete app.commands._commands[`publish:team:${team.name}`]
+        }
+      })
+    }
 
-    app.commands.addCommand(publish, Publish(commandProps))
-    app.commands.addCommand(clone, Clone(commandProps))
-    app.commands.addCommand(login, Login(commandProps))
-    app.commands.addCommand(logout, Logout(commandProps))
-    app.commands.addCommand(myProfile, MyProfile(commandProps))
-    app.commands.addCommand(help, Help(commandProps))
+    app.commands.addCommand('kyso:publish', Publish(commandProps))
+
+    if (user.teams) {
+      user.teams.forEach(team => {
+        app.commands.addCommand(`kyso:publish:${team.name}`, Publish({
+          ...commandProps,
+          team: team.name,
+          labelOverride: `Publish to team: ${team.name}`
+        }))
+      })
+    }
+
+    app.commands.addCommand('kyso:clone', Clone(commandProps))
+    app.commands.addCommand('kyso:login', Login(commandProps))
+    app.commands.addCommand('kyso:logout', Logout(commandProps))
+    app.commands.addCommand('kyso:myProfile', MyProfile(commandProps))
+    app.commands.addCommand('kyso:help', Help(commandProps))
   }
 
   async render() {
-    console.log('render')
     // I'd love to use react, but its not possible
     // so I'll try simulate some features
     await this.clean()
@@ -144,16 +149,32 @@ export default class {
     const { mainMenu } = this.props
 
     const { user } = this.state
-    console.log('adding commands in render')
     if (user) {
-      mainMenu.kysoMenu.addGroup([
-        { command: publish },
-        { command: clone },
-        { command: myProfile }
-      ], 20)
-      mainMenu.kysoMenu.addGroup([{ command: help }, { command: logout }], 50)
+      const cmds = []
+
+      if (user.teams) {
+        const newGroup = [
+          { type: 'submenu', submenu: mainMenu.kysoMenu.publishMenu.menu },
+          { command: 'publish:submenu' }
+        ]
+        const newCmds = [{ command: 'kyso:publish' }]
+        user.teams.forEach(team => {
+          newCmds.push({ command: `kyso:publish:${team.name}` })
+        })
+
+        mainMenu.kysoMenu.publishMenu.addGroup(newCmds)
+        mainMenu.kysoMenu.addGroup(newGroup, 20)
+      } else {
+        cmds.push({ command: 'kyso:publish' })
+      }
+
+      cmds.push({ command: 'kyso:clone' })
+      cmds.push({ command: 'kyso:myProfile' })
+      mainMenu.kysoMenu.addGroup(cmds, 20)
+
+      mainMenu.kysoMenu.addGroup([{ command: 'kyso:help' }, { command: 'kyso:logout' }], 50)
     } else {
-      mainMenu.kysoMenu.addGroup([{ command: login }], 20)
+      mainMenu.kysoMenu.addGroup([{ command: 'kyso:login' }], 20)
     }
   }
 }
