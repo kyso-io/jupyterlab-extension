@@ -857,6 +857,14 @@
     "@phosphor/signaling" "^1.2.2"
     "@phosphor/virtualdom" "^1.1.2"
 
+"@types/cookie@^0.3.1":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@types/cookie/-/cookie-0.3.2.tgz#453f4b14b25da6a8ea4494842dedcbf0151deef9"
+
+"@types/object-assign@^4.0.30":
+  version "4.0.30"
+  resolved "https://registry.yarnpkg.com/@types/object-assign/-/object-assign-4.0.30.tgz#8949371d5a99f4381ee0f1df0a9b7a187e07e652"
+
 "@types/prop-types@*":
   version "15.5.9"
   resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.5.9.tgz#f2d14df87b0739041bc53a7d75e3d77d726a3ec0"
@@ -1552,6 +1560,10 @@ convert-source-map@^1.1.0, convert-source-map@^1.5.0, convert-source-map@^1.5.1:
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.6.0.tgz#51b537a8c43e0f04dec1993bffcdd504e758ac20"
   dependencies:
     safe-buffer "~5.1.1"
+
+cookie@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.3.1.tgz#e7e0a1f9ef43b4c8ba925c5c5a96e806d16873bb"
 
 copy-descriptor@^0.1.0:
   version "0.1.1"
@@ -4077,6 +4089,15 @@ union-value@^1.0.0:
     get-value "^2.0.6"
     is-extendable "^0.1.1"
     set-value "^0.4.3"
+
+universal-cookie@^3.0.7:
+  version "3.0.7"
+  resolved "https://registry.yarnpkg.com/universal-cookie/-/universal-cookie-3.0.7.tgz#722e8bc455bb33ed3c74988344fad9d9bb88278e"
+  dependencies:
+    "@types/cookie" "^0.3.1"
+    "@types/object-assign" "^4.0.30"
+    cookie "^0.3.1"
+    object-assign "^4.1.0"
 
 universalify@^0.1.0:
   version "0.1.2"
