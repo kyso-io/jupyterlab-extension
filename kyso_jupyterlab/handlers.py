@@ -34,7 +34,7 @@ class KysoCloneHandler(Handler):
 
         Input format:
             {
-              'current_path': 'current_file_browser_path',
+              'target_path': 'current_file_browser_path',
               'repo_url': 'https://github.com/path/to/myrepo'
             }
         """
@@ -49,13 +49,18 @@ class KysoCloneHandler(Handler):
             return
 
         url = data['url']
+        print(data['target_path'])
         if data['target_path'].startswith('/'):
-            target_path = os.path.join(self.settings['server_root_dir'], data['target_path'].replace('/', '', 1))
+            target_path = os.path.expanduser(os.path.join(self.settings['server_root_dir'], data['target_path'].replace('/', '', 1)))
+            print('1')
         else:
-            target_path = os.path.join(self.settings['server_root_dir'], data['target_path'])
+            target_path = os.path.expanduser(os.path.join(self.settings['server_root_dir'], data['target_path']))
+            print('2')
         if os.path.isdir(target_path):
             raise HTTPError(status_code=400, log_message='Folder %s already exists' % target_path)
             return
+
+        print(target_path)
 
         zip_path = os.path.join('/tmp', id_generator() + '.zip')
 

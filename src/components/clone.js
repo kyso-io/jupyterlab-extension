@@ -4,6 +4,7 @@ import { URLExt } from '@jupyterlab/coreutils'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { ServerConnection } from '@jupyterlab/services'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
+import { Label, TextInput, Button, Pane, Text, Paragraph, Heading } from 'evergreen-ui'
 import config from '../config'
 
 export const LAUNCHER_CLASS = 'kyso-publish'
@@ -68,7 +69,7 @@ class Component extends React.Component {
 
   async onSubmit(e) {
     const { user } = this.props
-    e.preventDefault()
+    e && e.preventDefault()
     let url = e.target.url.value
 
     if (url.startsWith('/')) {
@@ -109,6 +110,8 @@ class Component extends React.Component {
         url: version.zip.url,
       }
 
+      console.log(args)
+
       if (study.user.nickname === user.nickname) {
         args.update = `${user.nickname}/${study.name}`
       }
@@ -135,40 +138,60 @@ class Component extends React.Component {
     const { user, fileBrowserTracker } = this.props // eslint-disable-line
 
     return (
-      <div className="jp-Launcher-body">
-        <div className="jp-Launcher-content">
-          <h3>Enter url of kyso study to download</h3>
-          <form
-            onSubmit={(e) => {
-              this.onSubmit(e)
-            }}
-          >
-            <input
-              className="name-input"
-              name="url"
-              type="text"
-            />
-            <input
-              className="name-submit"
-              type="submit"
-              value={busy ? 'Downloading...' : 'Download'}
-            />
-          </form>
-          <h3>My studies</h3>
-          {studies.length > 0 && studies.map(study => (
-            <CloneButton
-              key={study.objectId}
-              study={study}
-              user={user}
-              fileBrowserTracker={fileBrowserTracker}
-            />
-          ))}
+      <Pane className="jp-Launcher-body">
+        <Pane className="jp-Launcher-content">
+          <Pane paddingY={32}>
+            <Pane maxWidth={600}>
+              <Heading size={700} marginBottom={12}>
+                Download Kyso study
+              </Heading>
 
-          {studies.length === 0 && (
-            <p>loading...</p>
-          )}
-        </div>
-      </div>
+              <Pane>
+                <form onSubmit={(e) => { this.onSubmit(e) }}>
+                  <Label>Enter url of kyso study to download</Label>
+                  <Pane display="flex">
+                    <Pane>
+                      <TextInput
+                        name="url"
+                        type="text"
+                        placeholder="eg: eoin/getting-started-welcome-notebook"
+                      />
+                    </Pane>
+                    <Pane>
+                      <Button
+                        isLoading={busy}
+                      >
+                        Download
+                      </Button>
+                    </Pane>
+                  </Pane>
+
+                  <Paragraph>
+                    You may need to refresh the file browser
+                  </Paragraph>
+                </form>
+
+              </Pane>
+              <Pane marginTop={24}>
+
+                <Heading size={700}>My studies</Heading>
+                {studies.length > 0 && studies.map(study => (
+                  <CloneButton
+                    key={study.objectId}
+                    study={study}
+                    user={user}
+                    fileBrowserTracker={fileBrowserTracker}
+                  />
+                ))}
+
+                {studies.length === 0 && (
+                  <p>loading...</p>
+                )}
+              </Pane>
+            </Pane>
+          </Pane>
+        </Pane>
+      </Pane>
     )
   }
 }
@@ -189,24 +212,24 @@ class CloneButton extends Component {
     const { user, study } = this.props // eslint-disable-line
 
     return (
-      <div
-        style={{ marginTop: '10px' }}
+      <Pane
+        marginTop={10}
         key={study.objectId}
       >
-        <a
+        <Button
           href="/clone"
-          className="clone-link"
-          onClick={(e) => {
-            e.preventDefault()
-            this.download(study)
-          }}
+          onClick={() => { this.download(study) }}
+          intent="success"
+          isLoading={busy}
+          height={24}
+          marginRight={12}
         >
-          {busy ? 'Downloading...' : 'Download'}
-        </a>
-        <span>
+          Download
+        </Button>
+        <Text>
           {study.user.nickname}/{study.name}{'  '}
-        </span>
-      </div>
+        </Text>
+      </Pane>
     )
   }
 }

@@ -3,12 +3,11 @@ import React from 'react'
 import kyso from '@kyso/client'
 import { Base64 } from 'js-base64'
 import { Line } from 'rc-progress'
-import { Base64 } from 'js-base64'
 import Spinner from 'react-spinkit'
 import { VDomRenderer } from '@jupyterlab/apputils'
 import { FileBrowserModel } from '@jupyterlab/filebrowser'
+import { Link, TextInputField, Button, Pane, Text, Paragraph, Heading } from 'evergreen-ui'
 import config from '../config'
-
 
 const slugPattern = new RegExp('^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$')
 
@@ -88,7 +87,7 @@ class Component extends React.Component {
       if (author === user.nickname || author === team) {
         this.setState({ name: kysofile.split('/')[1].trim(), hasKysoFile: kysofile })
       } else {
-        this.setState({ hasKysoFile: kysofile })
+        // this.setState({ hasKysoFile: kysofile })
       }
     }
 
@@ -108,7 +107,7 @@ class Component extends React.Component {
   }
 
   onClick(item) {
-    if (item.type === 'notebook') {
+    if (item.type !== 'directory') {
       this.startPublish(item.path)
     } else if (item.type === 'directory') {
       this.cd(item)
@@ -272,125 +271,106 @@ class Component extends React.Component {
     const readableSize = (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i] // eslint-disable-line
 
     return (
-      <div className="jp-Launcher-body">
-        <div className="jp-Launcher-content">
-          {!name &&
-            <React.Fragment>
-              {!team && <h2>Publish to Kyso</h2>}
-              {team && <h2>Publish to your team: {team}</h2>}
-              {hasKysoFile && `Publishing an update of ${hasKysoFile}`}
-            </React.Fragment>
-          }
-
-          {name && (
-            <h2>
-              {hasKysoFile && 'Publishing an update of '}
-              {!hasKysoFile && 'Publishing new study: '}
-              {'  '}
-              <a
-                href={`${config.UI_URL}/${team || user.nickname}/${name}`}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                <React.Fragment>{team || user.nickname}/{name}</React.Fragment>
-              </a>
-            </h2>
-          )}
-
-          {published &&
-            <p>
-              <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href={`${config.UI_URL}/${team || user.nickname}/${name}`}
-              >
-                <React.Fragment>View {`${team || user.nickname}/${name}`} on Kyso</React.Fragment>
-              </a>
-            </p>
-          }
-
-          {!error && !published && !busy && <p>
-            Choose which notebook will be the main notebook displayed on Kyso (don{"'"}t worry all files will
-            be included in a reproducible repository on Kyso).
-          </p>}
-
-          <p>Directory: {this.getCwd()}/</p>
-          <br />
-
-          {error && (
-            <p>
-              <strong>{error}</strong>
-            </p>
-          )}
-
-          {busy && !progress &&
-            <div>
-              <Spinner name="circle" fadeIn="none" />
-            </div>
-          }
-
-          {progress &&
-            <div>
-              Uploading, size:{'  '}{readableSize}
-              <br />
-              <Line percent={progress.toString()} /> {`${progress}%`}
-            </div>
-          }
-
-          {!error && !published && !busy && (
-            <div>
-              <p>Study name {hasKysoFile && `(leave blank to update current study ${name})`}:</p>
-              <input
-                className="name-input"
-                value={name || ''}
-                onChange={(e) => {
-                  this.setState({ name: e.target.value })
-                }}
-                type="text"
-              />
-            </div>
-          )}
-
-          {!error && !published && !busy && items.map(item => (
-            <p key={item.path}>
-              {item.type !== "notebook" && item.type !== "directory" && (
-                <span>{item.path}</span>
+      <Pane className="jp-Launcher-body">
+        <Pane className="jp-Launcher-content">
+          <Pane paddingY={32}>
+            <Pane maxWidth={600}>
+              <Heading size={700}>
+                {!name && !hasKysoFile && !team && 'Publish to Kyso'}
+                {!name && !hasKysoFile && team && `Publish to your team: ${team}`}
+                {!name && hasKysoFile && `Publishing an update of ${hasKysoFile}`}
+                {name && !hasKysoFile && 'Publishing new study: '}
+              </Heading>
+              {name && hasKysoFile && (
+                <Link
+                  display="inline-block"
+                  href={`${config.UI_URL}/${team || user.nickname}/${name}`}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  textDecoration="none"
+                >
+                  <Heading size={700}>
+                    Publishing an update of {team || user.nickname}/{name}
+                  </Heading>
+                </Link>
               )}
-              {item.type === "notebook" && (
-                <span>
-                  <span>
-                    {item.path}{'  '}
-                  </span>
-                  <a
-                    href="/preview-link"
-                    className="preview-link"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      this.onClick(item)
-                    }}
+
+              {published &&
+                <Paragraph>
+                  <Link
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`${config.UI_URL}/${team || user.nickname}/${name}`}
                   >
-                    Select as main
-                  </a>
-                </span>
+                    View {`${team || user.nickname}/${name}`} on Kyso
+                  </Link>
+                </Paragraph>
+              }
+
+              {!error && !published && !busy && (
+                <Paragraph maxWidth={600}>
+                  Choose which notebook will be the main notebook displayed on Kyso (don{"'"}t worry all files will
+                  be included in a reproducible repository on Kyso).
+                </Paragraph>
               )}
-              {item.type === "directory" && (
-                <span>
-                  <a
-                    className="directory-link"
-                    href="/directory-link"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      this.onClick(item)
-                    }}
-                  >
-                    {item.path}/
-                  </a>
-                </span>
+
+              <Paragraph>Directory: {this.getCwd()}/</Paragraph>
+
+              {error && (<Paragraph>{error}</Paragraph>)}
+
+              {busy && !progress &&
+                <Pane>
+                  <Spinner name="circle" fadeIn="none" />
+                </Pane>
+              }
+
+              {progress &&
+                <Pane>
+                  <Text>Uploading, size:{'  '}{readableSize}</Text>
+                  <Line percent={progress.toString()} /> {`${progress}%`}
+                </Pane>
+              }
+
+              {!error && !published && !busy && (
+                <TextInputField
+                  marginTop={24}
+                  label="Study name"
+                  description={hasKysoFile ? "Don't change if you want to update the current study" : ""}
+                  placeholder="Study name"
+                  value={name || ''}
+                  onChange={(e) => {
+                    this.setState({ name: e.target.value })
+                  }}
+                />
               )}
-            </p>
-          ))}
-        </div>
-      </div>
+            </Pane>
+
+            <Pane>
+              {!error && !published && !busy && items.map(item => (
+                <Pane key={item.path}>
+                  {item.type !== "directory" && (
+                    <Pane>
+                      <Button
+                        href="/preview-link"
+                        onClick={() => {
+                          this.onClick(item)
+                        }}
+                        appearance="minimal"
+                        intent="success"
+                        iconBefore="circle"
+                        marginRight={12}
+                      >
+                        Set as main
+                      </Button>
+                      <Text>{item.path}</Text>
+                    </Pane>
+                  )}
+                </Pane>
+              ))}
+            </Pane>
+          </Pane>
+        </Pane>
+      </Pane>
     )
   }
 }

@@ -114,17 +114,17 @@ export default class {
       delete app.commands._commands['kyso:help']
     }
 
-    if (user.teams) {
+    if (user && user.teams) {
       user.teams.forEach(team => {
-        if (`publish:team:${team.name}` in app.commands._commands) {
-          delete app.commands._commands[`publish:team:${team.name}`]
+        if (`kyso:publish:${team.name}` in app.commands._commands) {
+          delete app.commands._commands[`kyso:publish:${team.name}`]
         }
       })
     }
 
     app.commands.addCommand('kyso:publish', Publish(commandProps))
 
-    if (user.teams) {
+    if (user && user.teams) {
       user.teams.forEach(team => {
         app.commands.addCommand(`kyso:publish:${team.name}`, Publish({
           ...commandProps,
